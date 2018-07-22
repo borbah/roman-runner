@@ -1,0 +1,12 @@
+@import './index.scss';
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: rgb(42,39,39);
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+}

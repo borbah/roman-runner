@@ -1,90 +1,53 @@
-/* File: gulpfile.js */
-require('es6-promise').polyfill();
-// grab our packages
 var gulp = require('gulp'),
     sass = require('gulp-sass'),
     sourcemaps = require('gulp-sourcemaps'),
     autoprefixer = require('gulp-autoprefixer'),
     browserSync = require('browser-sync').create(),
     plumber = require('gulp-plumber'),
-    notify = require("gulp-notify"),
-    cleanCSS = require('gulp-clean-css'),
-    babel = require('gulp-babel'),
-    eslint = require('gulp-eslint');
+    notify = require('gulp-notify'),
+    babel = require('gulp-babel');
 
-es6Src = 'es6Src/**/*.js';
-scssSrc = 'scss/main.scss';
-watchScss = 'scss/*.scss';
-cssPub = 'css';
-jsPub = 'js';
+js = 'src/js_src/*.js';
+styles = 'src/styles_src/main.scss';
+watchStyles = 'src/styles_src/*.scss';
+cssPub = 'src/css';
+jsPub = 'src/js';
 
-
-function handleError(error) {
-    console.log(error.toString());
-    this.emit('end');
-}
-
-
-// configure the jshint task
-gulp.task('eslint', function () {
-    return gulp.src(es6Src)
-        .pipe(eslint({
-            parserOptions: {
-                "ecmaVersion": 6
-            },
-            rules: {
-                "arrow-body-style": ["warn", "always"],
-                "no-var": "warn",
-                "prefer-const": "warn",
-                "indent": "warn"
-            }
-        }))
-        .pipe(eslint.results(results => {
-            console.log(`Total Results: ${results.length}`);
-            console.log(`Total Warnings: ${results.warningCount}`);
-            console.log(`Total Errors: ${results.errorCount}`);
-        }))
-        .pipe(eslint.format())
-        .pipe(eslint.failAfterError())
+gulp.task('babel', () =>
+    gulp.src(js)
         .pipe(babel({
             presets: [["env", {
                 "targets": {
-                    "browsers": ["last 4 versions"]
+                    "browsers": ["last 2 versions"]
                 }
             }]]
         }))
-        .on('error', function(e) {
+        .on('error', function (e) {
             console.log('>>> ERROR', e);
-            // emit here
             this.emit('end');
         })
-        .pipe(gulp.dest(jsPub));
-});
+        .pipe(gulp.dest('src/js'))
+);
 
-// configure the sass task
 gulp.task('sass', function () {
-    return gulp.src(scssSrc)
-
+    return gulp.src(styles)
         .pipe(plumber({errorHandler: notify.onError("Error: <%= error.message %>")}))
         .pipe(sourcemaps.init())
         .pipe(sass().on('error', sass.logError))
-        .pipe(autoprefixer('last 4 version'))
+        .pipe(autoprefixer('last 2 version'))
         .pipe(sourcemaps.write())
-        .pipe(cleanCSS({compatibility: 'ie8'}))
         .pipe(gulp.dest(cssPub))
         .pipe(browserSync.stream());
 });
 
-
-// configure which files to watch and what tasks to use on file changes & setup BrowserSync
 gulp.task('watch', function () {
     browserSync.init({
         server: {
-            baseDir: "./"
+            baseDir: "./src"
         }
     });
-    gulp.watch("*.html").on('change', browserSync.reload);
-    gulp.watch(es6Src, ['eslint']).on('change', browserSync.reload);
-    gulp.watch(watchScss, ['sass']);
+    gulp.watch("src/**/*").on('change', browserSync.reload);
+    gulp.watch(js, ['babel']).on('change', browserSync.reload);
+    gulp.watch(watchStyles, ['sass']);
 
 });
